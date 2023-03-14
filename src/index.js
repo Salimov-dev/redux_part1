@@ -8,6 +8,7 @@ import {
   getTasks,
   getTasksLoadingStatus,
   getError,
+  createNewTask,
 } from "./store/task";
 import configureStore from "./store/store";
 import { Provider, useDispatch, useSelector } from "react-redux";
@@ -16,6 +17,7 @@ const store = configureStore();
 
 const App = () => {
   const state = useSelector(getTasks());
+  console.log("state", state);
   const isLoading = useSelector(getTasksLoadingStatus());
   const error = useSelector(getError());
   const dispatch = useDispatch();
@@ -32,6 +34,16 @@ const App = () => {
     dispatch(taskDeleted(taskId));
   };
 
+  const handleAddNewTask = () => {
+    const newTask = {
+      userId: 1,
+      id: "",
+      title: "New title",
+      completed: false,
+    };
+    dispatch(createNewTask(newTask));
+  };
+
   if (isLoading) {
     return <h1>Loading...</h1>;
   }
@@ -42,6 +54,7 @@ const App = () => {
   return (
     <>
       <h1>APP</h1>
+      <button onClick={handleAddNewTask}>Add new task</button>
       <ul>
         {state.map((el) => (
           <li key={el.id}>
