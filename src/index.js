@@ -1,30 +1,43 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import ReactDOM from "react-dom/client";
-import * as actions from "./store/actions";
-import { initiateStore } from "./store/store";
+import {
+  titleChanged,
+  taskDeleted,
+  completTask,
+  loadTasks,
+  getTasks,
+  getTasksLoadingStatus,
+  getError,
+} from "./store/task";
+import configureStore from "./store/store";
+import { Provider, useDispatch, useSelector } from "react-redux";
 
-const store = initiateStore();
+const store = configureStore();
 
 const App = () => {
-  const [state, setState] = useState(store.getState());
+  const state = useSelector(getTasks());
+  const isLoading = useSelector(getTasksLoadingStatus());
+  const error = useSelector(getError());
+  const dispatch = useDispatch();
 
   useEffect(() => {
-    store.subscribe(() => {
-      setState(store.getState());
-    });
+    dispatch(loadTasks());
   }, []);
 
-  const completTask = (taskId) => {
-    store.dispatch(actions.taskCompleted(taskId));
-  };
-
   const changeTitle = (taskId) => {
-    store.dispatch(actions.titleChanged(taskId));
+    dispatch(titleChanged(taskId));
   };
 
   const removeTask = (taskId) => {
-    store.dispatch(actions.taskRemoved(taskId));
+    dispatch(taskDeleted(taskId));
   };
+
+  if (isLoading) {
+    return <h1>Loading...</h1>;
+  }
+  if (error) {
+    return <p>{error}</p>;
+  }
 
   return (
     <>
@@ -34,7 +47,9 @@ const App = () => {
           <li key={el.id}>
             <p>{el.title}</p>
             <p>{`Completed: ${el.completed}`}</p>
-            <button onClick={() => completTask(el.id)}>Complete</button>
+            <button onClick={() => dispatch(completTask(el.id))}>
+              Complete
+            </button>
             <button onClick={() => changeTitle(el.id)}>change title</button>
             <button onClick={() => removeTask(el.id)}>Delete</button>
             <hr />
@@ -46,4 +61,8 @@ const App = () => {
 };
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
-root.render(<App />);
+root.render(
+  <Provider store={store}>
+    <App />
+  </Provider>
+);

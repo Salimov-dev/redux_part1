@@ -1,11 +1,20 @@
-import { legacy_createStore as createStore } from "redux";
-import { taskReducer } from "./taskReducer";
+import { configureStore, combineReducers } from "@reduxjs/toolkit";
+import errorReducer from "./errors";
+import { logger } from "./middleware/logger";
+import taskReducer from "./task";
 
-const initialState = [
-  { id: 1, title: "Task1", completed: false },
-  { id: 2, title: "Task2", completed: false },
-];
+const rootReducer = combineReducers({
+  errors: errorReducer,
+  tasks: taskReducer,
+});
 
-export function initiateStore() {
-  return createStore(taskReducer, initialState);
+function createStore() {
+  return configureStore({
+    reducer: rootReducer,
+    middleware: (curryGetDefaultMiddleware) =>
+      curryGetDefaultMiddleware().concat(logger),
+    devTools: process.env.NODE_ENV !== "production",
+  });
 }
+
+export default createStore;
